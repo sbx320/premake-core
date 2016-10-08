@@ -162,6 +162,9 @@
 --
 -- Write out the rules to build each of the workspace's projects.
 --
+function travisEncode(name)
+	return name:gsub(" ", "-")
+end 
 
 	function make.projectrules(wks)
 		for prj in p.workspace.eachproject(wks) do
@@ -171,7 +174,9 @@
 
 			local cfgvar = make.tovar(prj.name)
 			_p('ifneq (,$(%s_config))', cfgvar)
-
+			
+		-- Travis Hack:
+			_p(1,'@echo "travis_fold:start:%s"', travisEncode(prj.name))
 			_p(1,'@echo "==== Building %s ($(%s_config)) ===="', prj.name, cfgvar)
 
 			local prjpath = premake.filename(prj, make.getmakefilename(prj, true))
@@ -179,7 +184,7 @@
 			local prjname = path.getname(prjpath)
 
 			_x(1,'@${MAKE} --no-print-directory -C %s -f %s config=$(%s_config)', prjdir, prjname, cfgvar)
-
+            _p(1,'@echo "travis_fold:end:%s"', travisEncode(prj.name))
 			_p('endif')
 			_p('')
 		end
