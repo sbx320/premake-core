@@ -5,5 +5,6 @@ WORKDIR /src
 COPY . /src
 
 RUN make -f Bootstrap.mak linux 
-RUN premake5 gmake 
-RUN premake5 embed
+RUN find | grep premake5
+RUN ./premake5 gmake 
+RUN ./premake5 embed
