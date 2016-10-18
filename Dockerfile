@@ -1,4 +1,4 @@
-FROM sbx320/clang
+FROM sbx320/clang:svn
 
 WORKDIR /src
 
