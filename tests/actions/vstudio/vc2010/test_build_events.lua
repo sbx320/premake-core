@@ -4,8 +4,9 @@
 -- Copyright (c) 2012-2013 Jason Perkins and the Premake project
 --
 
+	local p = premake
 	local suite = test.declare("vstudio_vc2010_build_events")
-	local vc2010 = premake.vstudio.vc2010
+	local vc2010 = p.vstudio.vc2010
 
 
 --
@@ -15,7 +16,7 @@
 	local wks, prj, cfg
 
 	function suite.setup()
-		premake.escaper(premake.vstudio.vs2010.esc)
+		p.escaper(p.vstudio.vs2010.esc)
 		wks = test.createWorkspace()
 	end
 
@@ -82,6 +83,17 @@
 		postbuildcommands { "command1", "command2" }
 		prepare()
 		test.capture ("<PostBuildEvent>\n\t<Command>command1\r\ncommand2</Command>\n</PostBuildEvent>\n")
+	end
+
+
+--
+-- Multiple of the same command should be emit.
+--
+
+	function suite.onCommandTwice()
+		postbuildcommands { "command", "command" }
+		prepare()
+		test.capture ("<PostBuildEvent>\n\t<Command>command\r\ncommand</Command>\n</PostBuildEvent>\n")
 	end
 
 

@@ -4,8 +4,9 @@
 -- Copyright (c) 2013 Jason Perkins and the Premake project
 --
 
+	local p = premake
 	local suite = test.declare("vs2010_nmake_props")
-	local vc2010 = premake.vstudio.vc2010
+	local vc2010 = p.vstudio.vc2010
 
 
 --
@@ -15,7 +16,7 @@
 	local wks, prj
 
 	function suite.setup()
-		premake.action.set("vs2010")
+		p.action.set("vs2010")
 		wks, prj = test.createWorkspace()
 		kind "Makefile"
 	end
@@ -111,6 +112,59 @@ command 2</NMakeBuildCommandLine>
 <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
 	<NMakeOutput>$(OutDir)MyProject</NMakeOutput>
 	<NMakeCleanCommandLine>command 1</NMakeCleanCommandLine>
+</PropertyGroup>
+		]]
+	end
+
+	function suite.onDefines()
+		defines { "DEBUG", "_DEBUG" }
+		prepare()
+		test.capture [[
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+	<NMakeOutput>$(OutDir)MyProject</NMakeOutput>
+	<NMakePreprocessorDefinitions>DEBUG;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+</PropertyGroup>
+		]]
+	end
+
+	function suite.onEscapedDefines()
+		p.escaper(p.vstudio.vs2010.esc)
+		defines { "&", "<", ">" }
+		prepare()
+		test.capture [[
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+	<NMakeOutput>$(OutDir)MyProject</NMakeOutput>
+	<NMakePreprocessorDefinitions>&amp;;&lt;;&gt;;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+</PropertyGroup>
+		]]
+		p.escaper(nil)
+	end
+
+	function suite.onIncludeDirs()
+		includedirs { "include/lua", "include/zlib" }
+		prepare()
+		test.capture [[
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+	<NMakeOutput>$(OutDir)MyProject</NMakeOutput>
+	<NMakeIncludeSearchPath>include\lua;include\zlib</NMakeIncludeSearchPath>
+</PropertyGroup>
+		]]
+	end
+
+
+--
+-- Should not emit include dirs or preprocessor definitions if the project
+-- kind is "None", since that project is by definition not buildable.
+---
+
+	function suite.noIncludeDirsOrPreprocessorDefs_onKindNone()
+		kind "None"
+		defines { "DEBUG", "_DEBUG" }
+		includedirs { "include/lua", "include/zlib" }
+		prepare()
+		test.capture [[
+<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+	<NMakeOutput>$(OutDir)MyProject</NMakeOutput>
 </PropertyGroup>
 		]]
 	end

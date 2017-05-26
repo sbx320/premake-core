@@ -4,10 +4,11 @@
 -- Copyright (c) 2013 Jason Perkins and the Premake project
 --
 
-	premake.tools.clang = {}
-	local clang = premake.tools.clang
-	local gcc = premake.tools.gcc
-	local config = premake.config
+	local p = premake
+	p.tools.clang = {}
+	local clang = p.tools.clang
+	local gcc = p.tools.gcc
+	local config = p.config
 
 
 
@@ -41,11 +42,13 @@
 --    An array of C compiler flags.
 --
 
-	clang.cflags = {
-		architecture = gcc.cflags.architecture,
-		flags = gcc.cflags.flags,
-		floatingpoint = gcc.cflags.floatingpoint,
-		strictaliasing = gcc.cflags.strictaliasing,
+	clang.shared = {
+		architecture = gcc.shared.architecture,
+		flags = gcc.shared.flags,
+		floatingpoint = {
+			Fast = "-ffast-math",
+		},
+		strictaliasing = gcc.shared.strictaliasing,
 		optimize = {
 			Off = "-O0",
 			On = "-O2",
@@ -54,25 +57,27 @@
 			Size = "-Os",
 			Speed = "-O3",
 		},
-		pic = gcc.cflags.pic,
-		vectorextensions = gcc.cflags.vectorextensions,
-		warnings = gcc.cflags.warnings,
-		symbols = gcc.cflags.symbols
+		pic = gcc.shared.pic,
+		vectorextensions = gcc.shared.vectorextensions,
+		warnings = gcc.shared.warnings,
+		symbols = gcc.shared.symbols
 	}
 
+	clang.cflags = table.merge(gcc.cflags, {
+	})
+
 	function clang.getcflags(cfg)
+		local shared = config.mapFlags(cfg, clang.shared)
+		local cflags = config.mapFlags(cfg, clang.cflags)
 
-		local flags = config.mapFlags(cfg, clang.cflags)
+		local flags = table.join(shared, cflags)
 		flags = table.join(flags, clang.getwarnings(cfg))
-		return flags
 
+		return flags
 	end
 
 	function clang.getwarnings(cfg)
-
-		-- Just pass through to GCC for now
 		return gcc.getwarnings(cfg)
-
 	end
 
 
@@ -87,12 +92,15 @@
 --    An array of C++ compiler flags.
 --
 
+	clang.cxxflags = table.merge(gcc.cxxflags, {
+	})
+
 	function clang.getcxxflags(cfg)
-
-		-- Just pass through to GCC for now
-		local flags = gcc.getcxxflags(cfg)
+		local shared = config.mapFlags(cfg, clang.shared)
+		local cxxflags = config.mapFlags(cfg, clang.cxxflags)
+		local flags = table.join(shared, cxxflags)
+		flags = table.join(flags, clang.getwarnings(cfg))
 		return flags
-
 	end
 
 
@@ -187,18 +195,18 @@
 		},
 		kind = {
 			SharedLib = function(cfg)
-				local r = { iif(cfg.system == premake.MACOSX, "-dynamiclib", "-shared") }
+				local r = { iif(cfg.system == p.MACOSX, "-dynamiclib", "-shared") }
 				if cfg.system == "windows" and not cfg.flags.NoImportLib then
 					table.insert(r, '-Wl,--out-implib="' .. cfg.linktarget.relpath .. '"')
-				elseif cfg.system == premake.LINUX then
-					table.insert(r, '-Wl,-soname=' .. premake.quoted(cfg.linktarget.name))
-				elseif cfg.system == premake.MACOSX then
-					table.insert(r, '-Wl,-install_name,' .. premake.quoted('@rpath/' .. cfg.linktarget.name))
+				elseif cfg.system == p.LINUX then
+					table.insert(r, '-Wl,-soname=' .. p.quoted(cfg.linktarget.name))
+				elseif cfg.system == p.MACOSX then
+					table.insert(r, '-Wl,-install_name,' .. p.quoted('@rpath/' .. cfg.linktarget.name))
 				end
 				return r
 			end,
 			WindowedApp = function(cfg)
-				if cfg.system == premake.WINDOWS then return "-mwindows" end
+				if cfg.system == p.WINDOWS then return "-mwindows" end
 			end,
 		},
 		system = {

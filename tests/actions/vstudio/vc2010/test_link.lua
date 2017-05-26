@@ -4,9 +4,10 @@
 -- Copyright (c) 2011-2013 Jason Perkins and the Premake project
 --
 
+	local p = premake
 	local suite = test.declare("vs2010_link")
-	local vc2010 = premake.vstudio.vc2010
-	local project = premake.project
+	local vc2010 = p.vstudio.vc2010
+	local project = p.project
 
 
 --
@@ -16,7 +17,7 @@
 	local wks, prj
 
 	function suite.setup()
-		premake.action.set("vs2010")
+		p.action.set("vs2010")
 		wks, prj = test.createWorkspace()
 		kind "SharedLib"
 	end
@@ -71,7 +72,6 @@
 		test.capture [[
 <Link>
 	<SubSystem>Console</SubSystem>
-	<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
 		]]
 	end
 
@@ -81,7 +81,6 @@
 		test.capture [[
 <Link>
 	<SubSystem>Windows</SubSystem>
-	<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
 		]]
 	end
 
@@ -102,6 +101,22 @@
 		test.capture [[
 <Link>
 	<SubSystem>Windows</SubSystem>
+</Link>
+		]]
+	end
+
+
+--
+-- Test the handling of the entrypoint API.
+--
+	function suite.onEntryPoint()
+		kind "ConsoleApp"
+		entrypoint "foobar"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Console</SubSystem>
+	<EntryPointSymbol>foobar</EntryPointSymbol>
 </Link>
 		]]
 	end
@@ -129,7 +144,8 @@
 -- Test the handling of the Symbols flag.
 --
 
-	function suite.generateDebugInfo_onSymbols()
+	function suite.generateDebugInfo_onSymbolsOn_on2010()
+		p.action.set("vs2010")
 		symbols "On"
 		prepare()
 		test.capture [[
@@ -139,6 +155,72 @@
 		]]
 	end
 
+	function suite.generateDebugInfo_onSymbolsFastLink_on2010()
+		p.action.set("vs2010")
+		symbols "FastLink"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<GenerateDebugInformation>true</GenerateDebugInformation>
+		]]
+	end
+
+	function suite.generateDebugInfo_onSymbolsFull_on2010()
+		p.action.set("vs2010")
+		symbols "Full"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<GenerateDebugInformation>true</GenerateDebugInformation>
+		]]
+	end
+
+	function suite.generateDebugInfo_onSymbolsOn_on2015()
+		p.action.set("vs2015")
+		symbols "On"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<GenerateDebugInformation>true</GenerateDebugInformation>
+		]]
+	end
+
+	function suite.generateDebugInfo_onSymbolsFastLink_on2015()
+		p.action.set("vs2015")
+		symbols "FastLink"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+	<GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+		]]
+	end
+
+	function suite.generateDebugInfo_onSymbolsFull_on2015()
+		p.action.set("vs2015")
+		symbols "Full"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<GenerateDebugInformation>true</GenerateDebugInformation>
+		]]
+	end
+
+	function suite.generateDebugInfo_onSymbolsFull_on2017()
+		p.action.set("vs2017")
+		symbols "Full"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+		]]
+	end
 
 --
 -- Any system libraries specified in links() should be listed as
@@ -152,6 +234,20 @@
 <Link>
 	<SubSystem>Windows</SubSystem>
 	<AdditionalDependencies>lua.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		]]
+	end
+
+	function suite.additionalDependencies_onSystemLinksStatic()
+		kind "StaticLib"
+		links { "lua", "zlib" }
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+</Link>
+<Lib>
+	<AdditionalDependencies>lua.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+</Lib>
 		]]
 	end
 
@@ -171,6 +267,20 @@
 		]]
 	end
 
+	function suite.additionalDependencies_onSystemLinksExtensionsStatic()
+		kind "StaticLib"
+		links { "lua.obj", "zlib.lib" }
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+</Link>
+<Lib>
+	<AdditionalDependencies>lua.obj;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+</Lib>
+		]]
+	end
+
 
 --
 -- Any system libraries specified in links() with multiple dots should
@@ -184,6 +294,20 @@
 <Link>
 	<SubSystem>Windows</SubSystem>
 	<AdditionalDependencies>lua.5.3.lib;lua.5.4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		]]
+	end
+
+	function suite.additionalDependencies_onSystemLinksExtensionsMultipleDotsStatic()
+		kind "StaticLib"
+		links { "lua.5.3.lib", "lua.5.4" }
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+</Link>
+<Lib>
+	<AdditionalDependencies>lua.5.3.lib;lua.5.4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+</Lib>
 		]]
 	end
 
@@ -398,7 +522,6 @@
 		test.capture [[
 <Link>
 	<SubSystem>Console</SubSystem>
-	<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
 	<TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
 		]]
 	end

@@ -4,8 +4,9 @@
 -- Copyright (c) 2009-2014 Jason Perkins and the Premake project
 --
 
+	local p = premake
 	local suite = test.declare("vstudio_cs2005_files")
-	local cs2005 = premake.vstudio.cs2005
+	local cs2005 = p.vstudio.cs2005
 
 
 --
@@ -15,7 +16,7 @@
 	local wks, prj
 
 	function suite.setup()
-		premake.action.set("vs2005")
+		p.action.set("vs2005")
 		wks = test.createWorkspace()
 	end
 
@@ -42,6 +43,18 @@
 		prepare()
 		test.capture [[
 		<Compile Include="Src\Hello.cs" />
+		]]
+	end
+
+
+	function suite.PerConfigFile()
+		files { "Hello.cs" }
+		configuration { 'debug' }
+			files { "HelloTwo.cs" }
+		prepare()
+		test.capture [[
+		<Compile Include="Hello.cs" />
+		<Compile Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' " Include="HelloTwo.cs" />
 		]]
 	end
 
