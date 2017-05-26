@@ -4,9 +4,9 @@
 -- Copyright (c) 2015-2015 Jason Perkins and the Premake project
 --
 
-	premake.vstudio.vc2015 = {}
-
 	local p = premake
+	p.vstudio.vc2015 = {}
+
 	local vstudio = p.vstudio
 	local vc2010 = vstudio.vc2010
 
@@ -26,7 +26,7 @@
 
 		-- Visual Studio always uses Windows path and naming conventions
 
-		os = "windows",
+		targetos = "windows",
 
 		-- The capabilities of this action
 
@@ -65,7 +65,7 @@
 
 		vstudio = {
 			solutionVersion = "12",
-			versionName     = "2015",
+			versionName     = "14",
 			targetFramework = "4.5",
 			toolsVersion    = "14.0",
 			filterToolsVersion = "4.0",

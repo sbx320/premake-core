@@ -19,7 +19,13 @@
 		"base/tools.lua",
 		"base/tree.lua",
 		"base/globals.lua",
+		"base/moduledownloader.lua",
 		"base/semver.lua",
+		"base/http.lua",
+		"base/json.lua",
+		"base/jsonwrapper.lua",
+		"base/languages.lua",
+		"base/term.lua",
 
 		-- configuration data
 		"base/field.lua",
@@ -86,6 +92,7 @@
 		"actions/vstudio/vs2012.lua",
 		"actions/vstudio/vs2013.lua",
 		"actions/vstudio/vs2015.lua",
+		"actions/vstudio/vs2017.lua",
 
 		-- Clean action
 		"actions/clean/_clean.lua",

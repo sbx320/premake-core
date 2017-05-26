@@ -4,12 +4,11 @@
 -- Copyright (c) 2014 Jason Perkins and the Premake project
 --
 
-	premake.vstudio.vs2010.rules.xml = {}
-
-	local m = premake.vstudio.vs2010.rules.xml
-	m.elements = {}
-
 	local p = premake
+	p.vstudio.vs2010.rules.xml = {}
+
+	local m = p.vstudio.vs2010.rules.xml
+	m.elements = {}
 
 
 ---
@@ -119,7 +118,7 @@
 				m.stringListProperty(def)
 			elseif type(def.values) == "table" then
 				m.enumProperty(def)
-			elseif def.kind:startswith("list:") then
+			elseif def.kind and def.kind:startswith("list:") then
 				m.stringListProperty(def)
 			else
 				m.stringProperty(def)
